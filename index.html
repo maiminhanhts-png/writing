@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLIL Micro-teaching by Group 2 – Climate Detectives</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Paytone+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#36AD92; --ink:#1F2D3D; --teal:#1A8A93; --red:#E35B4F; --blue:#2B7BB9;
+  --orange:#F2A93B; --cream:#FFE7B3; --brown:#8B3A2B; --muted:#5A6B7B; --mint:#EAF6F2;
+  --ok:#2E9E6A; --bad:#E35B4F; --yellow:#FFDE59;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:#17323a;color:var(--ink);font-family:Inter,system-ui,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+.app{height:100%;display:grid;grid-template-rows:minmax(0,1fr) auto}
+.viewport{position:relative;overflow:hidden;min-height:0;background:#17323a}
+.stage{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0;overflow:hidden;background:var(--bg)}
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .35s,visibility 0s .35s;background:var(--bg);overflow:hidden}
+.slide.on{opacity:1;visibility:visible;transition:opacity .35s}
+
+/* decorations */
+.blob{position:absolute;pointer-events:none;z-index:0}
+.sticker{position:absolute;pointer-events:none;z-index:3;filter:drop-shadow(0 4px 6px rgba(0,0,0,.12))}
+.slide > *:not(.blob){z-index:2}
+
+/* type */
+.title{position:absolute;left:0;right:0;top:46px;text-align:center;font-family:'Paytone One',Inter,sans-serif;color:#fff;font-size:62px;line-height:1.1;letter-spacing:.5px;text-transform:uppercase;margin:0;font-weight:400}
+.title.lo{top:70px}
+.tag{position:absolute;left:56px;top:20px;height:42px;padding:0 34px;border-radius:21px;color:#fff;font-weight:800;font-size:21px;display:flex;align-items:center;gap:10px;letter-spacing:.3px}
+.tag.blue{background:var(--blue)} .tag.orange{background:var(--orange)} .tag.teal{background:var(--teal)}
+.tag.brown{background:var(--brown)} .tag.ink{background:var(--ink)}
+.card{position:absolute;background:#fff;border-radius:24px;box-shadow:0 6px 0 rgba(20,60,55,.10)}
+.dark{position:absolute;background:var(--ink);color:#fff;border-radius:40px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:800}
+.b{font-weight:800} .tl{color:var(--teal)} .rd{color:var(--red)} .bl{color:var(--blue)} .or{color:var(--orange)} .yl{color:var(--yellow)}
+.mut{color:var(--muted)}
+.lab{font-weight:800;font-size:22px;letter-spacing:.6px;text-transform:uppercase}
+.photo{position:absolute;object-fit:cover;border-radius:14px}
+.fitimg{width:100%;height:100%;object-fit:contain;display:block}
+.num{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:var(--red);color:#fff;font-weight:800;font-size:28px;flex:none}
+.num.br{background:var(--brown)}
+
+/* steps */
+.step{transition:opacity .35s,transform .35s}
+.slide[data-steps] .step:not(.shown){opacity:0;transform:translateY(14px);pointer-events:none}
+.slide[data-steps] .ask.step:not(.shown){opacity:1;transform:none;pointer-events:auto}
+
+/* reveal chips / blanks */
+.ask{border:0;background:transparent;padding:0;font:inherit;color:inherit;cursor:pointer}
+.ask.chip{background:var(--orange);color:var(--ink);border-radius:30px;padding:6px 22px;font-weight:800;box-shadow:0 3px 0 rgba(0,0,0,.15);transition:transform .15s}
+.ask.chip:hover{transform:translateY(-2px)}
+.ask.chip.shown{background:var(--teal);color:#fff;animation:pop .35s}
+.ask.qm:not(.shown){background:var(--mint);color:var(--teal);border:2px dashed var(--teal);border-radius:12px;padding:2px 22px;font-weight:800}
+.ask.qm.shown{animation:pop .35s}
+.ask.blank{border-bottom:3px dashed currentColor;min-width:120px;display:inline-block;text-align:center;font-weight:inherit}
+.ask.blank.shown{border-bottom-style:solid;color:var(--teal);font-weight:800;animation:pop .35s}
+.answer{display:inline-block;background:var(--teal);color:#fff;border-radius:20px;padding:4px 16px;font-weight:800;font-size:.8em;margin-left:10px}
+@keyframes pop{0%{transform:scale(.85)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* choice buttons */
+.opt{border:3px solid transparent;transition:background .2s,border-color .2s,transform .15s}
+.opt:hover{transform:translateY(-2px)}
+.opt.ok{border-color:var(--ok)!important;background:#E3F6EC!important}
+.opt.bad{border-color:var(--bad)!important;background:#FDE8E6!important;animation:shake .35s}
+.opt.picked{border-color:var(--ink)!important;background:#FFF3D6!important}
+.mark{display:none;font-weight:900;margin-left:8px}
+.opt.ok .mark.y,.opt.bad .mark.n{display:inline}
+.opt.ok .mark.y{color:var(--ok)} .opt.bad .mark.n{color:var(--bad)}
+
+/* small control buttons on slides */
+.ctl{position:absolute;display:flex;gap:10px;z-index:4}
+.cbtn{border:0;border-radius:24px;padding:10px 20px;background:var(--ink);color:#fff;font-weight:700;font-size:19px;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.cbtn.light{background:#fff;color:var(--ink)}
+.cbtn:hover{filter:brightness(1.15)}
+.score{align-self:center;color:#fff;font-weight:800;font-size:20px;margin-left:6px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.cd{border:0;border-radius:30px;background:var(--ink);color:#fff;font-weight:800;font-size:30px;padding:8px 22px;font-variant-numeric:tabular-nums;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.cd.run{background:var(--red)}
+.cd.done{background:var(--red);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.5}}
+
+/* flip cards */
+.flip{position:absolute;border:0;padding:0;background:transparent;perspective:900px}
+.flip .face{position:absolute;inset:0;background:#fff;border-radius:24px;box-shadow:0 6px 0 rgba(20,60,55,.10);display:flex;flex-direction:column;align-items:center;padding:30px 18px;text-align:center;transition:transform .22s}
+.flip .back{display:none}
+.flip.turned .front{display:none} .flip.turned .back{display:flex}
+.flip.turning .face{transform:scaleX(0)}
+.flip .hint{position:absolute;bottom:16px;font-size:17px;color:var(--muted);font-weight:600}
+
+/* matching */
+.bank{position:absolute;display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.chipm{border:0;border-radius:30px;background:#fff;color:var(--ink);font-weight:800;font-size:28px;padding:10px 26px;box-shadow:0 4px 0 rgba(0,0,0,.18);touch-action:none;user-select:none}
+.chipm.sel{outline:4px solid var(--orange)}
+.slot{min-width:250px;min-height:54px;border:3px dashed var(--teal);border-radius:16px;display:inline-flex;align-items:center;justify-content:flex-start;padding:2px 6px;background:var(--mint);cursor:pointer;transition:background .2s}
+.slot.hover{background:#FFF3D6}
+.slot .chipm{box-shadow:none;background:transparent;padding:4px 10px;font-size:30px}
+.slot.ok{border-style:solid;border-color:var(--ok);background:#E3F6EC}
+.slot.bad{border-style:solid;border-color:var(--bad);background:#FDE8E6}
+.ghost{position:absolute;z-index:50;pointer-events:none;opacity:.9;transform:translate(-50%,-50%) rotate(-3deg)}
+
+/* presenter bar */
+.bar{background:#0f2329;color:#e8f3f0;display:flex;align-items:center;gap:10px;padding:8px 12px;position:relative;font-size:15px;flex-wrap:wrap}
+.bar .prog{position:absolute;left:0;top:0;height:3px;background:var(--orange);transition:width .3s}
+.bar button{background:#1d3a42;border:0;border-radius:8px;color:#fff;padding:7px 12px;font-weight:600}
+.bar button:hover{background:#2a4f59}
+.bar .count{font-variant-numeric:tabular-nums;font-weight:700;min-width:64px;text-align:center}
+.bar .sec{color:#9fd8c9;font-weight:600;white-space:nowrap}
+.bar .stepinfo{color:#ffd88a;font-weight:600;white-space:nowrap}
+.bar .sp{flex:1}
+.bar .pace{border-radius:20px;padding:4px 12px;font-weight:700;background:#1d3a42;white-space:nowrap}
+.pace.ok{background:#1f5b45} .pace.late{background:#7a2b25} .pace.early{background:#22516e}
+.bar .timer{font-variant-numeric:tabular-nums;font-weight:800;font-size:18px;min-width:70px;text-align:center}
+.timer.warn{color:#ffd88a} .timer.over{color:#ff8f86}
+@media (max-width:700px){.bar .sec,.bar .stepinfo,.bar .pace{display:none}}
+
+/* notes drawer */
+.notes{position:absolute;right:0;top:0;bottom:0;width:min(440px,92vw);background:rgba(250,252,251,.97);color:var(--ink);box-shadow:-6px 0 20px rgba(0,0,0,.3);padding:18px 20px 24px;overflow:auto;z-index:20;font-size:16px;line-height:1.5}
+.notes h3{margin:0 0 6px;font-size:14px;letter-spacing:.8px;text-transform:uppercase;color:var(--teal)}
+.notes pre{white-space:pre-wrap;font-family:inherit;margin:0}
+.notes .x{position:absolute;right:12px;top:10px;background:var(--ink);color:#fff;border:0;border-radius:8px;padding:4px 10px}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="viewport" id="viewport">
+<div class="stage" id="stage">
+
+<!-- 1 TITLE -->
+<section class="slide" data-sec="Intro" data-blobs="title">
+  <img class="sticker" src="img/globe.webp" alt="" style="left:52px;top:150px;width:540px">
+  <img class="sticker" src="img/clip.webp" alt="" style="left:520px;top:-30px;width:166px">
+  <img class="sticker" src="img/brush.webp" alt="" style="left:1339px;top:48px;width:170px">
+  <img class="sticker" src="img/pen.webp" alt="" style="left:346px;top:742px;width:187px">
+  <div style="position:absolute;left:650px;top:370px;color:#fff;font-family:'Paytone One',Inter,sans-serif;line-height:1.05">
+    <div style="font-size:92px">CLIL Micro-teaching</div>
+    <div style="font-size:60px">by Group 2</div>
+  </div>
+</section>
+
+<!-- 2 OUR MATERIAL -->
+<section class="slide" data-sec="Intro" data-blobs="b">
+  <h2 class="title">Our material</h2>
+  <img class="sticker" src="img/page-b.webp" alt="geog.1 page 123: The Horn of Africa – climate" style="left:70px;top:190px;width:380px;transform:rotate(-4deg);border-radius:4px">
+  <img class="sticker" src="img/page-a.webp" alt="geog.1 page 124: Coffee farming in Ethiopia" style="left:330px;top:205px;width:350px;transform:rotate(3deg);border-radius:4px">
+  <div class="card" style="left:704px;top:172px;width:824px;height:186px;display:flex;align-items:center;gap:24px;padding:0 28px">
+    <img src="img/ic-book.webp" alt="" style="width:104px">
+    <div><div class="lab tl">Coursebook</div>
+      <div class="b" style="font-size:32px;line-height:1.15"><span class="tl">geog.1</span> Student Book (4th edition)</div>
+      <div class="mut" style="font-size:22px;margin-top:4px">RoseMarie Gallagher &amp; Richard Parish · Oxford University Press, 2014</div></div>
+  </div>
+  <div class="card" style="left:704px;top:378px;width:824px;height:196px;display:flex;align-items:center;gap:24px;padding:0 28px">
+    <img src="img/ic-globe.webp" alt="" style="width:104px">
+    <div><div class="lab rd">Lesson</div>
+      <div class="b" style="font-size:32px;line-height:1.15">Unit 7: <span class="rd">In the Horn of Africa</span></div>
+      <div class="mut" style="font-size:22px;margin-top:4px">7.3 <b class="rd">The Horn of Africa: climate</b> (pp. 122–123) + link to 7.4 <b class="rd">Coffee farming in Ethiopia</b> (pp. 124–125)</div></div>
+  </div>
+  <div class="card" style="left:704px;top:594px;width:824px;height:186px;display:flex;align-items:center;gap:24px;padding:0 28px">
+    <img src="img/ic-learners.webp" alt="" style="width:104px">
+    <div><div class="lab bl">Learners</div>
+      <div class="b" style="font-size:32px;line-height:1.15"><span class="bl">A2</span> (CEFR) · Vietnamese learners</div>
+      <div class="mut" style="font-size:22px;margin-top:4px">Geography × English (CLIL)</div></div>
+  </div>
+</section>
+
+<!-- 3 UNIT TITLE -->
+<section class="slide" data-sec="Intro" data-blobs="title">
+  <img class="sticker" src="img/globe.webp" alt="" style="left:52px;top:150px;width:540px">
+  <img class="sticker" src="img/clip.webp" alt="" style="left:520px;top:-30px;width:166px">
+  <img class="sticker" src="img/brush.webp" alt="" style="left:1339px;top:48px;width:170px">
+  <img class="sticker" src="img/pen.webp" alt="" style="left:346px;top:742px;width:187px">
+  <div style="position:absolute;left:650px;top:250px;width:760px;color:#fff;font-family:'Paytone One',Inter,sans-serif;font-size:84px;line-height:1.08">Unit 7:<br>The Horn of Africa: climate</div>
+</section>
+
+<!-- 4 SPOT THE DIFFERENCE -->
+<section class="slide" data-sec="Warm-up" data-blobs="a">
+  <h2 class="title">Spot the difference</h2>
+  <div class="card" style="left:108px;top:168px;width:664px;height:470px;padding:14px">
+    <img class="photo" src="img/photo-green.webp" alt="Picture A: green farmland in the Ethiopian Highlands" style="left:14px;top:14px;width:636px;height:400px">
+  </div>
+  <div class="card" style="left:828px;top:168px;width:664px;height:470px;padding:14px">
+    <img class="photo" src="img/photo-dry.webp" alt="Picture B: very dry, cracked land" style="left:14px;top:14px;width:636px;height:400px">
+  </div>
+  <div class="dark" style="left:240px;top:600px;width:400px;height:60px;background:var(--teal);font-size:30px">Picture A&nbsp; · &nbsp;green</div>
+  <div class="dark" style="left:940px;top:600px;width:440px;height:60px;background:var(--orange);font-size:30px">Picture B&nbsp; · &nbsp;very dry</div>
+  <div class="card choose" data-ok="NO" data-reveal="#s4a" style="left:300px;top:690px;width:1000px;height:100px;display:flex;align-items:center;gap:26px;padding:0 30px">
+    <span class="b" style="font-size:40px;flex:1">Same climate?</span>
+    <button class="opt" data-v="YES" style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:18px;padding:6px 18px"><img src="img/ic-thumbup.webp" alt="" style="width:52px"><span class="b tl" style="font-size:34px">YES</span><span class="mark n">✗</span></button>
+    <button class="opt" data-v="NO" style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:18px;padding:6px 18px"><img src="img/ic-thumbdown.webp" alt="" style="width:52px"><span class="b rd" style="font-size:34px">NO</span><span class="mark y">✓</span></button>
+  </div>
+  <div id="s4a" class="dark ask-target" hidden style="left:250px;top:810px;width:1100px;height:62px;font-size:26px">Both are in the Horn of Africa. How can one region have such different places?</div>
+  <img class="sticker" src="img/bubble.webp" alt="" style="left:1400px;top:672px;width:150px">
+</section>
+
+<!-- 5 OUR MISSION -->
+<section class="slide" data-sec="Warm-up" data-blobs="b" data-steps>
+  <h2 class="title">Our mission</h2>
+  <div class="card" style="left:36px;top:180px;width:688px;height:448px">
+    <img src="img/worldmap.webp" alt="World map" style="position:absolute;left:30px;top:30px;width:628px">
+    <div style="position:absolute;left:400px;top:118px;width:92px;height:92px;border:4px solid var(--red);border-radius:50%"></div>
+    <div class="dark" style="left:420px;top:228px;width:250px;height:52px;background:var(--red);font-size:24px">Horn of Africa</div>
+    <div style="position:absolute;left:0;right:0;bottom:30px;text-align:center;font-style:italic;font-size:26px;color:var(--ink)">East of Africa, near the Equator</div>
+  </div>
+  <div class="card step" style="left:772px;top:180px;width:790px;height:136px;display:flex;align-items:center;gap:22px;padding:0 26px">
+    <img src="img/ic-thermo.webp" alt="" style="width:72px"><div><div class="lab tl" style="font-size:20px">Mystery 1</div><div class="b" style="font-size:32px;line-height:1.2">Why is it hot? Why are some places cooler?</div></div></div>
+  <div class="card step" style="left:772px;top:336px;width:790px;height:136px;display:flex;align-items:center;gap:22px;padding:0 26px">
+    <img src="img/ic-rain.webp" alt="" style="width:72px"><div><div class="lab tl" style="font-size:20px">Mystery 2</div><div class="b" style="font-size:32px;line-height:1.2">Why are some places very dry?</div></div></div>
+  <div class="card step" style="left:772px;top:492px;width:790px;height:136px;display:flex;align-items:center;gap:22px;padding:0 26px">
+    <img src="img/ic-wheat.webp" alt="" style="width:72px"><div><div class="lab tl" style="font-size:20px">Mystery 3</div><div class="b" style="font-size:32px;line-height:1.2">How do people farm there?</div></div></div>
+  <div class="dark step" style="left:128px;top:680px;width:1344px;height:84px;font-size:30px;padding:0 30px">Big question: How does climate affect people's lives in the Horn of Africa?</div>
+  <img class="sticker" src="img/pencil.webp" alt="" style="left:1480px;top:700px;width:120px">
+</section>
+
+<!-- 6 WEATHER OR CLIMATE -->
+<section class="slide" data-sec="Warm-up" data-blobs="a">
+  <h2 class="title">Weather or climate?</h2>
+  <div class="card" style="left:136px;top:180px;width:640px;height:364px;padding:34px 36px">
+    <div style="display:flex;gap:24px;align-items:center">
+      <img src="img/ic-suncloud.webp" alt="" style="width:120px">
+      <div><div style="font-size:54px;color:var(--blue);line-height:1">WEATHER</div>
+        <div class="dark" style="position:static;display:inline-flex;background:var(--blue);font-size:28px;padding:4px 22px;margin-top:10px">thời tiết</div></div>
+    </div>
+    <div style="font-size:38px;margin-top:30px">What it is like <b class="bl">today</b>.</div>
+  </div>
+  <div class="card" style="left:824px;top:180px;width:640px;height:364px;padding:34px 36px">
+    <div style="display:flex;gap:24px;align-items:center">
+      <img src="img/ic-calendar.webp" alt="" style="width:120px">
+      <div><div style="font-size:54px;color:var(--teal);line-height:1">CLIMATE</div>
+        <div class="dark" style="position:static;display:inline-flex;background:var(--teal);font-size:28px;padding:4px 22px;margin-top:10px">khí hậu</div></div>
+    </div>
+    <div style="font-size:38px;margin-top:30px;line-height:1.25">What the weather is <b class="bl">usually</b> like in a place.</div>
+  </div>
+  <div class="card" style="left:180px;top:600px;width:1090px;height:92px;display:flex;align-items:center;justify-content:space-between;padding:0 30px">
+    <span class="b" style="font-size:38px">1.&nbsp; It is raining today.</span>
+    <button class="ask chip" data-a="WEATHER ✓" style="font-size:28px;width:340px">weather or climate?</button>
+  </div>
+  <div class="card" style="left:180px;top:712px;width:1090px;height:92px;display:flex;align-items:center;justify-content:space-between;padding:0 30px">
+    <span class="b" style="font-size:38px">2. Hanoi is hot in summer.</span>
+    <button class="ask chip" data-a="CLIMATE ✓" style="font-size:28px;width:340px">weather or climate?</button>
+  </div>
+  <img class="sticker" src="img/watch.webp" alt="" style="left:1400px;top:580px;width:150px">
+</section>
+
+<!-- 7 DETECTIVE TOOLKIT -->
+<section class="slide" data-sec="Warm-up" data-blobs="b">
+  <h2 class="title">Detective toolkit</h2>
+  <button class="flip" style="left:57px;top:180px;width:276px;height:560px"><div class="face front"><img src="img/ic-calendar.webp" alt="" style="width:120px"><div class="b" style="font-size:46px;margin-top:22px">climate</div><div class="mut" style="font-size:30px;margin-top:10px">/ˈklaɪmət/</div><div class="hint">tap to turn</div></div>
+    <div class="face back"><div class="b" style="font-size:36px">climate</div><div class="dark" style="position:static;background:var(--teal);font-size:28px;padding:8px 20px;margin:20px 0;min-height:56px">khí hậu</div><div style="font-size:30px;line-height:1.3">The usual weather in a place</div></div></button>
+  <button class="flip" style="left:359px;top:180px;width:276px;height:560px"><div class="face front"><img src="img/ic-globe.webp" alt="" style="width:120px"><div class="b" style="font-size:46px;margin-top:22px">Equator</div><div class="mut" style="font-size:30px;margin-top:10px">/ɪˈkweɪtə/</div><div class="hint">tap to turn</div></div>
+    <div class="face back"><div class="b" style="font-size:36px">Equator</div><div class="dark" style="position:static;background:var(--teal);font-size:28px;padding:8px 20px;margin:20px 0;min-height:56px">đường xích đạo</div><div style="font-size:30px;line-height:1.3">A line around the middle of the Earth</div></div></button>
+  <button class="flip" style="left:661px;top:180px;width:276px;height:560px"><div class="face front"><img src="img/ic-mountain.webp" alt="" style="width:120px"><div class="b" style="font-size:46px;margin-top:22px">highlands</div><div class="mut" style="font-size:30px;margin-top:10px">/ˈhaɪləndz/</div><div class="hint">tap to turn</div></div>
+    <div class="face back"><div class="b" style="font-size:36px">highlands</div><div class="dark" style="position:static;background:var(--teal);font-size:28px;padding:8px 20px;margin:20px 0;min-height:56px">vùng cao nguyên</div><div style="font-size:30px;line-height:1.3">Land high above sea level</div></div></button>
+  <button class="flip" style="left:963px;top:180px;width:276px;height:560px"><div class="face front"><img src="img/ic-rain.webp" alt="" style="width:120px"><div class="b" style="font-size:46px;margin-top:22px">rainfall</div><div class="mut" style="font-size:30px;margin-top:10px">/ˈreɪnfɔːl/</div><div class="hint">tap to turn</div></div>
+    <div class="face back"><div class="b" style="font-size:36px">rainfall</div><div class="dark" style="position:static;background:var(--teal);font-size:28px;padding:8px 20px;margin:20px 0;min-height:56px">lượng mưa</div><div style="font-size:30px;line-height:1.3">How much rain a place gets</div></div></button>
+  <button class="flip" style="left:1265px;top:180px;width:276px;height:560px"><div class="face front"><img src="img/ic-desert.webp" alt="" style="width:120px"><div class="b" style="font-size:46px;margin-top:22px">dry</div><div class="mut" style="font-size:30px;margin-top:10px">/draɪ/</div><div class="hint">tap to turn</div></div>
+    <div class="face back"><div class="b" style="font-size:36px">dry</div><div class="dark" style="position:static;background:var(--teal);font-size:28px;padding:8px 20px;margin:20px 0;min-height:56px">khô hạn</div><div style="font-size:30px;line-height:1.3">With very little rain</div></div></button>
+  <div class="dark" style="left:200px;top:772px;width:1200px;height:76px;font-size:28px;gap:14px;padding:0 24px">
+    <span>Are highlands high or low?</span><button class="ask qm" data-a="<span class='answer'>High.</span>" style="font-size:24px">?</button>
+    <span>&nbsp;·&nbsp;</span>
+    <span>Does a dry place get a lot of rain?</span><button class="ask qm" data-a="<span class='answer'>No.</span>" style="font-size:24px">?</button>
+  </div>
+  <div class="ctl" style="left:1290px;top:118px"><button class="cbtn light" data-act="flipall">Turn all cards</button></div>
+</section>
+
+<!-- 8 DETECTIVE LANGUAGE -->
+<section class="slide" data-sec="Warm-up" data-blobs="a" data-steps>
+  <h2 class="title">Detective language</h2>
+  <div class="card step" style="left:104px;top:206px;width:846px;height:90px;display:flex;align-items:center;padding:0 28px;font-size:42px">This place is ________.</div>
+  <div class="card step" style="left:104px;top:316px;width:846px;height:90px;display:flex;align-items:center;padding:0 28px;font-size:42px">It gets&nbsp;<b class="tl">a lot of</b>&nbsp;/&nbsp;<b class="tl">very little</b>&nbsp;rain.</div>
+  <div class="card step" style="left:104px;top:426px;width:846px;height:90px;display:flex;align-items:center;padding:0 28px;font-size:42px">It is ________&nbsp;<b class="tl">because</b>&nbsp;________.</div>
+  <div class="card step" style="left:104px;top:536px;width:846px;height:90px;display:flex;align-items:center;padding:0 28px;font-size:39px"><b class="tl">The higher you go, the cooler it gets.</b></div>
+  <div class="card step" style="left:1004px;top:206px;width:506px;height:420px;background:var(--cream);padding:30px 34px">
+    <div style="display:flex;align-items:center;gap:16px"><img src="img/ic-search.webp" alt="" style="width:70px"><span style="font-size:40px">MODEL</span></div>
+    <div class="b" style="font-size:48px;line-height:1.2;margin-top:22px">This place is <span class="rd">dry</span> because it gets <span class="rd">very little rain</span>.</div>
+  </div>
+  <div class="dark step" style="left:306px;top:700px;width:910px;height:76px;font-size:32px">Pairs: say the model sentence once!</div>
+  <img class="sticker" src="img/pencil.webp" alt="" style="left:1420px;top:700px;width:140px">
+</section>
+
+<!-- 9 WHY IS IT HOT -->
+<section class="slide" data-sec="Mystery 1" data-blobs="b" data-steps>
+  <h2 class="title">Why is it hot?</h2>
+  <div class="card" style="left:66px;top:172px;width:876px;height:596px;padding:22px"><img class="fitimg" src="img/map-a.webp" alt="Map A: average July temperature in the Horn of Africa, with places W and V and the Equator"></div>
+  <button class="card ask" data-a="What does Map A show: <span class='rd b'>temperature</span> or <span class='rd b'>rainfall</span>? <span class='answer'>Temperature.</span>" style="left:984px;top:172px;width:552px;height:104px;text-align:left;padding:10px 22px;font-size:26px;line-height:1.3;border:0;background:#fff">What does Map A show: <span class="rd b">temperature</span> or <span class="rd b">rainfall</span>?</button>
+  <button class="card ask" data-a="Which colours are <span class='rd b'>hotter</span>? Which are <span class='rd b'>cooler</span>? <span class='answer'>Dark red · Light orange</span>" style="left:984px;top:294px;width:552px;height:104px;text-align:left;padding:10px 22px;font-size:26px;line-height:1.3;border:0;background:#fff">Which colours are <span class="rd b">hotter</span>? Which are <span class="rd b">cooler</span>?</button>
+  <button class="card ask" data-a="Look at the <span class='rd b'>Equator</span>. Hot or cold? <span class='answer'>Hot!</span>" style="left:984px;top:416px;width:552px;height:104px;text-align:left;padding:10px 22px;font-size:26px;line-height:1.3;border:0;background:#fff">Look at the <span class="rd b">Equator</span>. Hot or cold?</button>
+  <div class="card step" style="left:984px;top:540px;width:552px;height:228px;background:var(--cream);padding:20px 24px">
+    <div class="b" style="font-size:29px;line-height:1.3">The Horn of Africa is generally <span class="rd">hot</span> because it is in the <span class="rd">tropics</span>.</div>
+    <div style="font-size:21px;margin-top:22px">tropics = the hot region around the Equator (vùng nhiệt đới)</div>
+  </div>
+</section>
+
+<!-- 10 HIGHLAND SURPRISE -->
+<section class="slide" data-sec="Mystery 1" data-blobs="a" data-steps>
+  <h2 class="title">The highland surprise</h2>
+  <div class="card" style="left:66px;top:172px;width:674px;height:422px;padding:18px"><img class="fitimg" src="img/map-a.webp" alt="Map A: average July temperature, with places W and V"></div>
+  <div class="card choose" data-ok="W" data-reveal=".s10b" style="left:66px;top:614px;width:674px;height:156px;padding:16px 26px">
+    <div class="b" style="font-size:32px;display:flex;align-items:center;gap:10px;white-space:nowrap">Which place is cooler,
+      <button class="opt" data-v="V" style="background:#fff;border-radius:12px;padding:0 14px;font-weight:900;color:var(--red)">V<span class="mark n">✗</span></button> or
+      <button class="opt" data-v="W" style="background:#fff;border-radius:12px;padding:0 14px;font-weight:900;color:var(--red)">W<span class="mark y">✓</span></button>?</div>
+    <div style="font-size:34px;margin-top:10px"><span class="ask blank s10b" data-a="W">____</span> is cooler than <span class="ask blank s10b" data-a="V">____</span>.</div>
+  </div>
+  <div class="card" style="left:788px;top:172px;width:744px;height:422px;background:var(--mint);overflow:hidden">
+    <svg viewBox="0 0 744 422" width="744" height="422" style="position:absolute;inset:0" aria-label="A mountain: W at the top is high and cooler, V at the bottom is low and hotter">
+      <polygon points="310,60 60,372 560,372" fill="#7DB86A"/>
+      <polygon points="310,60 249,136 371,136" fill="#4E8F48"/>
+      <rect x="40" y="366" width="620" height="16" rx="8" fill="#C9A66B"/>
+      <text x="310" y="122" text-anchor="middle" font-family="Inter" font-weight="800" font-size="34" fill="#fff">W</text>
+      <text x="410" y="336" text-anchor="middle" font-family="Inter" font-weight="800" font-size="42" fill="#1F2D3D">V</text>
+      <image href="img/ic-thermo-blue.webp" x="500" y="36" width="64" height="64"/>
+      <text x="570" y="62" font-family="Inter" font-weight="700" font-size="34" fill="#2B7BB9">HIGH</text>
+      <text x="570" y="100" font-family="Inter" font-weight="700" font-size="34" fill="#2B7BB9">cooler</text>
+      <image href="img/ic-thermo-red.webp" x="540" y="236" width="70" height="70"/>
+      <text x="614" y="262" font-family="Inter" font-weight="700" font-size="34" fill="#E35B4F">LOW</text>
+      <text x="614" y="300" font-family="Inter" font-weight="700" font-size="34" fill="#E35B4F">hotter</text>
+    </svg>
+  </div>
+  <div class="dark" style="left:788px;top:614px;width:744px;height:64px;font-size:27px">THE HIGHER YOU GO, THE COOLER IT GETS.</div>
+  <div class="step" style="position:absolute;left:788px;top:692px;width:744px;text-align:center;color:#fff;font-weight:800;font-size:40px;line-height:1.2;text-shadow:0 2px 6px rgba(0,0,0,.45)">The Ethiopian Highlands are <span class="yl">cooler</span> because they are <span class="yl">higher</span>.</div>
+</section>
+
+<!-- 11 TRUE OR FALSE -->
+<section class="slide" data-sec="Mystery 1" data-blobs="b">
+  <h2 class="title">True or false?</h2>
+  <div class="card choose" data-ok="T" style="left:72px;top:170px;width:836px;height:156px;display:flex;align-items:center;gap:20px;padding:0 22px">
+    <span class="num">1</span><span class="b" style="font-size:34px;line-height:1.2;flex:1">The Horn of Africa is generally hot because it is in the tropics.</span>
+    <div style="display:flex;flex-direction:column;gap:8px"><button class="opt" data-v="T" style="background:var(--mint);border-radius:12px;padding:4px 14px;font-weight:800;font-size:22px">True<span class="mark y">✓</span></button><button class="opt" data-v="F" style="background:var(--mint);border-radius:12px;padding:4px 14px;font-weight:800;font-size:22px">False<span class="mark n">✗</span></button></div>
+  </div>
+  <div class="card choose" data-ok="F" data-reveal="#s11e" style="left:72px;top:344px;width:836px;height:210px;display:flex;align-items:center;gap:20px;padding:0 22px">
+    <span class="num">2</span><div style="flex:1"><div class="b" style="font-size:34px;line-height:1.2">The Ethiopian Highlands are cooler because they are closer to the Equator.</div>
+      <div id="s11e" hidden class="rd b" style="font-size:24px;margin-top:8px">✗ They are higher, not closer to the Equator.</div></div>
+    <div style="display:flex;flex-direction:column;gap:8px"><button class="opt" data-v="T" style="background:var(--mint);border-radius:12px;padding:4px 14px;font-weight:800;font-size:22px">True<span class="mark n">✗</span></button><button class="opt" data-v="F" style="background:var(--mint);border-radius:12px;padding:4px 14px;font-weight:800;font-size:22px">False<span class="mark y">✓</span></button></div>
+  </div>
+  <div class="card" style="left:72px;top:574px;width:836px;height:138px;border-radius:70px;display:flex;align-items:center;gap:20px;padding:0 30px">
+    <img src="img/ic-thumbup.webp" alt="" style="width:66px"><span class="b" style="font-size:34px;line-height:1.15">thumbs up<br>= True</span>
+    <img src="img/ic-cross.webp" alt="" style="width:62px;margin-left:30px"><span class="b" style="font-size:34px;line-height:1.15">arms crossed<br>= False</span>
+  </div>
+  <div class="card" style="left:952px;top:160px;width:580px;height:552px;padding:24px 30px">
+    <div class="b tl" style="font-size:36px">VIETNAM LINK</div>
+    <div style="display:flex;align-items:center;gap:18px;margin-top:22px"><img src="img/ic-mountain.webp" alt="" style="width:90px"><div class="b" style="font-size:40px;line-height:1.15"><span class="tl">Sa Pa, Đà Lạt</span><br>high</div></div>
+    <div style="display:flex;align-items:center;gap:18px;margin-top:14px"><img src="img/ic-thermo-red.webp" alt="" style="width:90px"><div class="b" style="font-size:40px;line-height:1.15"><span class="rd">Hà Nội</span><br>low</div></div>
+    <button class="ask chip" data-a="Which is cooler?" data-fill="#s11b" style="display:block;width:100%;font-size:34px;margin-top:26px">Which is cooler?</button>
+    <div style="font-size:36px;margin-top:14px;line-height:1.25"><span id="s11b" class="ask blank" data-a="Sa Pa / Đà Lạt">____</span> is cooler because it is higher.</div>
+  </div>
+</section>
+
+<!-- 12 WHERE DOES THE RAIN GO -->
+<section class="slide" data-sec="Mystery 2" data-blobs="a" data-steps>
+  <div class="tag blue">9:30&nbsp; MYSTERY 2</div>
+  <h2 class="title lo">Where does the rain go?</h2>
+  <div class="card" style="left:68px;top:172px;width:700px;height:644px;padding:16px"><img class="fitimg" src="img/map-b.webp" alt="Map B: annual rainfall in the Horn of Africa, with places X and Y"></div>
+  <div class="b" style="position:absolute;left:824px;top:184px;color:#fff;font-size:28px;line-height:1.2;white-space:nowrap;background:rgba(31,45,61,.88);border-radius:30px;padding:12px 26px">Map B: how much rain a place gets in <span class="or">one year</span></div>
+  <div class="card" style="left:824px;top:274px;width:712px;height:448px;padding:22px 26px;display:flex;flex-direction:column;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:20px"><span style="width:100px;height:62px;border-radius:12px;background:#1F5FA8"></span><span class="b" style="font-size:31px;width:300px">2,000–3,000 mm</span><span class="ask qm step bl" data-a="a lot of rain" style="font-size:28px;font-weight:700">?</span></div>
+    <div style="display:flex;align-items:center;gap:20px"><span style="width:100px;height:62px;border-radius:12px;background:#2E7CC4"></span><span class="b" style="font-size:31px;width:300px">1,000–2,000 mm</span><span class="ask qm step bl" data-a="a lot of rain" style="font-size:28px;font-weight:700">?</span></div>
+    <div style="display:flex;align-items:center;gap:20px"><span style="width:100px;height:62px;border-radius:12px;background:#6FA8DC"></span><span class="b" style="font-size:31px;width:300px">600–1,000 mm</span></div>
+    <div style="display:flex;align-items:center;gap:20px"><span style="width:100px;height:62px;border-radius:12px;background:#C9DDF0"></span><span class="b" style="font-size:31px;width:300px">200–600 mm</span><span class="ask qm step rd" data-a="quite dry" style="font-size:28px;font-weight:700">?</span></div>
+    <div style="display:flex;align-items:center;gap:20px"><span style="width:100px;height:62px;border-radius:12px;background:#fff;border:3px solid #8DA3B8"></span><span class="b" style="font-size:31px;width:300px">0–200 mm</span><span class="ask qm step rd" data-a="very dry" style="font-size:28px;font-weight:700">?</span></div>
+  </div>
+  <div class="dark" style="left:824px;top:746px;width:712px;height:68px;font-size:26px">Darker blue = more rain&nbsp; · &nbsp;mm = millimetres</div>
+</section>
+
+<!-- 13 X OR Y -->
+<section class="slide" data-sec="Mystery 2" data-blobs="b">
+  <div class="tag blue">10:45&nbsp; MYSTERY 2</div>
+  <h2 class="title lo">X or Y?</h2>
+  <div class="card" style="left:66px;top:172px;width:702px;height:644px;padding:16px"><img class="fitimg" src="img/map-b.webp" alt="Map B: annual rainfall, with places X and Y"></div>
+  <div class="card choose" data-ok="Y" data-reveal=".s13b" style="left:824px;top:172px;width:712px;height:120px;background:var(--cream);display:flex;align-items:center;gap:18px;padding:0 26px">
+    <span class="b" style="font-size:34px;flex:1;white-space:nowrap">Which place is <span class="rd">very dry</span>?</span>
+    <button class="opt" data-v="X" style="background:#fff;border-radius:14px;padding:4px 22px;font-weight:900;font-size:40px">X<span class="mark n">✗</span></button>
+    <button class="opt" data-v="Y" style="background:#fff;border-radius:14px;padding:4px 22px;font-weight:900;font-size:40px">Y<span class="mark y">✓</span></button>
+  </div>
+  <div class="card" style="left:824px;top:316px;width:712px;height:264px;padding:22px 28px">
+    <div class="lab bl">How do you know?</div>
+    <div style="font-size:32px;line-height:1.55;margin-top:10px">
+      <span class="ask blank s13b" data-a="Y" style="min-width:60px">___</span> is in the <b class="bl">white</b> area.<br>
+      It gets <span class="ask blank s13b" data-a="0–200">______</span> mm a year.<br>
+      <span class="ask blank s13b" data-a="X" style="min-width:60px">___</span> gets <b class="bl">more</b> / <b class="bl">less</b> rain than <span class="ask blank s13b" data-a="Y" style="min-width:60px">___</span>.</div>
+  </div>
+  <div class="card" style="left:824px;top:604px;width:712px;height:116px;display:flex;align-items:center;gap:18px;padding:0 26px">
+    <img src="img/ic-pencil.webp" alt="" style="width:62px"><span class="b" style="font-size:27px;flex:1;white-space:nowrap">Pairs: fill in <span class="bl">Worksheet B</span> (2 minutes)</span>
+    <button class="cd" data-countdown="120">2:00</button>
+  </div>
+  <img class="sticker" src="img/highlighter.webp" alt="" style="left:1420px;top:730px;width:140px">
+</section>
+
+<!-- 14 WHY DOES RAIN MATTER -->
+<section class="slide" data-sec="Mystery 2" data-blobs="a" data-steps>
+  <div class="tag blue">12:15&nbsp; MYSTERY 2</div>
+  <h2 class="title lo">Why does rain matter?</h2>
+  <div class="card step" style="left:80px;top:166px;width:1440px;height:98px;display:flex;align-items:center;gap:20px;padding:0 26px">
+    <img src="img/ic-rain.webp" alt="" style="width:62px"><img src="img/ic-sun.webp" alt="" style="width:62px;margin-left:-12px">
+    <span style="font-size:29px;line-height:1.25"><b class="bl">Rainy seasons</b> and <b class="bl">dry seasons</b>: rain does <b>not</b> fall all year. Some areas have two of each.</span></div>
+  <div class="card step" style="left:80px;top:300px;width:424px;height:272px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px"><img src="img/ic-sun.webp" alt="" style="width:130px"><span class="b" style="font-size:36px">Too little rain</span></div>
+  <div class="step" style="position:absolute;left:518px;top:400px;font-size:64px;color:var(--ink)">➜</div>
+  <div class="card step" style="left:588px;top:300px;width:424px;height:272px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px"><img src="img/ic-tree.webp" alt="" style="width:130px"><span class="b" style="font-size:36px">Crops dry out</span></div>
+  <div class="step" style="position:absolute;left:1026px;top:400px;font-size:64px;color:var(--ink)">➜</div>
+  <div class="card step" style="left:1096px;top:300px;width:424px;height:272px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px"><img src="img/ic-bowl.webp" alt="" style="width:130px"><span class="b" style="font-size:36px">Less food</span></div>
+  <div class="card step" style="left:80px;top:608px;width:1440px;height:186px;background:var(--cream);padding:24px 34px">
+    <div class="b" style="font-size:34px"><span class="rd">Famine</span> (nạn đói) = many people do not have enough food for a long time.</div>
+    <div style="font-size:28px;margin-top:22px">Very little rain does not always mean famine, but it makes farming difficult.</div>
+  </div>
+</section>
+
+<!-- 15 FARM RESCUE MISSION -->
+<section class="slide" data-sec="Team Mission" data-blobs="b">
+  <div class="tag orange">13:30&nbsp; TEAM MISSION</div>
+  <h2 class="title lo">Farm rescue mission</h2>
+  <div class="card" style="left:72px;top:172px;width:452px;height:528px;padding:24px 26px;text-align:center">
+    <div class="dark" style="position:static;background:var(--teal);height:66px;font-size:34px">ZONE X</div>
+    <div style="font-style:italic;font-size:25px;margin:12px 0 16px">west, near W</div>
+    <div class="choose" data-mode="pick" data-ok="Cool" style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px"><span class="b" style="font-size:29px">Hot or cool?</span><button class="opt pk" data-v="Hot">hot</button><button class="opt pk" data-v="Cool">cool</button></div>
+    <div class="choose" data-mode="pick" data-ok="Wet" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="b" style="font-size:29px">Wet or dry?</span><button class="opt pk" data-v="Wet">wet</button><button class="opt pk" data-v="Dry">dry</button></div>
+    <div class="choose" data-mode="pick" data-ok="crops" style="margin-top:26px;display:flex;flex-direction:column;gap:10px">
+      <button class="opt farm" data-v="crops"><img src="img/ic-wheat.webp" alt=""><span>grow crops?</span></button>
+      <button class="opt farm" data-v="animals"><img src="img/ic-goat.webp" alt=""><span>rear animals?</span></button></div>
+  </div>
+  <div class="card" style="left:552px;top:172px;width:452px;height:528px;padding:24px 26px;text-align:center">
+    <div class="dark" style="position:static;background:var(--red);height:66px;font-size:34px">ZONE Y</div>
+    <div style="font-style:italic;font-size:25px;margin:12px 0 16px">east / south, near V</div>
+    <div class="choose" data-mode="pick" data-ok="Hot" style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px"><span class="b" style="font-size:29px">Hot or cool?</span><button class="opt pk" data-v="Hot">hot</button><button class="opt pk" data-v="Cool">cool</button></div>
+    <div class="choose" data-mode="pick" data-ok="Dry" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="b" style="font-size:29px">Wet or dry?</span><button class="opt pk" data-v="Wet">wet</button><button class="opt pk" data-v="Dry">dry</button></div>
+    <div class="choose" data-mode="pick" data-ok="animals" style="margin-top:26px;display:flex;flex-direction:column;gap:10px">
+      <button class="opt farm" data-v="crops"><img src="img/ic-wheat.webp" alt=""><span>grow crops?</span></button>
+      <button class="opt farm" data-v="animals"><img src="img/ic-goat.webp" alt=""><span>rear animals?</span></button></div>
+  </div>
+  <div class="card" style="left:1044px;top:172px;width:488px;height:528px;padding:28px 30px">
+    <div style="font-size:30px">3 STEPS</div>
+    <div style="display:flex;gap:18px;align-items:center;margin-top:36px"><span class="num" style="background:var(--orange);color:var(--ink)">1</span><span style="font-size:31px;line-height:1.25">Look at <b class="tl">Map A</b> and <b class="tl">Map B</b>.</span></div>
+    <div style="display:flex;gap:18px;align-items:center;margin-top:44px"><span class="num" style="background:var(--orange);color:var(--ink)">2</span><span style="font-size:31px;line-height:1.25">Fill in the <b class="tl">Climate Passport</b>.</span></div>
+    <div style="display:flex;gap:18px;align-items:center;margin-top:44px"><span class="num" style="background:var(--orange);color:var(--ink)">3</span><span style="font-size:31px;line-height:1.25">Choose and explain <b class="tl">WHY</b>.</span></div>
+  </div>
+  <div class="ctl" style="left:72px;top:738px;flex-direction:column;gap:8px"><button class="cbtn light" data-act="checkpicks">✓ Check</button><button class="cbtn light" data-act="resetpicks">↺ Reset</button></div>
+  <div class="dark" style="left:320px;top:736px;width:840px;height:80px;font-size:32px">Detectives need evidence!</div>
+  <button class="cd" data-countdown="300" style="position:absolute;left:1200px;top:752px;z-index:4;font-size:34px">5:00</button>
+  <img class="sticker" src="img/clock.webp" alt="" style="left:1370px;top:680px;width:160px">
+</section>
+
+<!-- 16 TEAM TALK -->
+<section class="slide" data-sec="Team Mission" data-blobs="a">
+  <div class="tag orange">14:15&nbsp; TEAM MISSION</div>
+  <h2 class="title lo">Team talk</h2>
+  <div class="card" style="left:72px;top:172px;width:744px;height:128px;display:flex;align-items:center;gap:20px;padding:0 24px"><img src="img/ic-thermo.webp" alt="" style="width:76px"><div><div class="b tl" style="font-size:28px">Temperature Reader</div><div style="font-size:27px">"W is ____. V is ____."</div></div></div>
+  <div class="card" style="left:72px;top:318px;width:744px;height:128px;display:flex;align-items:center;gap:20px;padding:0 24px"><img src="img/ic-rain.webp" alt="" style="width:76px"><div><div class="b tl" style="font-size:28px">Rain Reader</div><div style="font-size:27px">"X gets ____. Y is ____."</div></div></div>
+  <div class="card" style="left:72px;top:464px;width:744px;height:128px;display:flex;align-items:center;gap:20px;padding:0 24px"><img src="img/ic-pencil.webp" alt="" style="width:76px"><div><div class="b tl" style="font-size:28px">Writer</div><div style="font-size:27px">"Can you repeat?"</div></div></div>
+  <div class="card" style="left:72px;top:610px;width:744px;height:128px;display:flex;align-items:center;gap:20px;padding:0 24px"><img src="img/ic-mic.webp" alt="" style="width:76px"><div><div class="b tl" style="font-size:28px">Reporter</div><div style="font-size:27px">"We choose ____ for Zone ___ because ____."</div></div></div>
+  <div class="card" style="left:864px;top:172px;width:668px;height:420px;padding:26px 32px;font-size:30px;line-height:1.4">
+    <div>SAY IT</div>
+    <div style="margin-top:20px">I think Zone X should ________.</div>
+    <div class="rd b">Why?</div>
+    <div>Because it is ______ and ______.</div>
+    <div class="rd b">I agree.&nbsp; /&nbsp; I'm not sure.</div>
+  </div>
+  <div class="card" style="left:864px;top:612px;width:668px;height:126px;background:var(--mint);padding:20px 28px;font-size:26px;line-height:1.35">Word bank: grow crops · rear animals · hot · cool · a lot of rain · very little rain</div>
+  <div class="ctl" style="left:1150px;top:766px;align-items:center"><span class="score">Team talk</span><button class="cd" data-countdown="150">2:30</button></div>
+</section>
+
+<!-- 17 HOW DO PEOPLE FARM (map D match) -->
+<section class="slide" data-sec="Mystery 3" data-blobs="b">
+  <div class="tag teal">18:30&nbsp; MYSTERY 3</div>
+  <h2 class="title lo">How do people farm?</h2>
+  <div class="card" style="left:68px;top:172px;width:652px;height:644px;padding:16px"><img class="fitimg" src="img/map-d.webp" alt="Map D: farming in the Horn of Africa – green, pale yellow and orange-pink areas"></div>
+  <div class="match" data-match>
+    <div class="card" style="left:772px;top:200px;width:770px;height:420px;padding:24px 30px">
+      <div class="b tl" style="font-size:38px">What does it mean?</div>
+      <div style="display:flex;align-items:center;gap:18px;margin-top:30px"><span style="width:76px;height:50px;border-radius:10px;background:#A6CF62"></span><span class="b" style="font-size:32px;width:200px">green</span><span class="mut" style="font-size:26px">= ?</span><span class="slot" data-a="crops"></span></div>
+      <div style="display:flex;align-items:center;gap:18px;margin-top:26px"><span style="width:76px;height:50px;border-radius:10px;background:#F6DDA8"></span><span class="b" style="font-size:32px;width:200px">pale yellow</span><span class="mut" style="font-size:26px">= ?</span><span class="slot" data-a="animals"></span></div>
+      <div style="display:flex;align-items:center;gap:18px;margin-top:26px"><span style="width:76px;height:50px;border-radius:10px;background:#E89A8E"></span><span class="b" style="font-size:32px;width:200px">orange-pink</span><span class="mut" style="font-size:26px">= ?</span><span class="slot" data-a="coffee"></span></div>
+    </div>
+    <div class="bank" style="left:772px;top:646px;width:770px">
+      <button class="chipm" data-v="coffee">coffee farming</button>
+      <button class="chipm" data-v="crops">growing crops</button>
+      <button class="chipm" data-v="animals">rearing animals</button>
+    </div>
+    <div class="ctl" style="left:772px;top:752px"><button class="cbtn" data-act="mcheck">Check</button><button class="cbtn light" data-act="mshow">Show answers</button><button class="cbtn light" data-act="mreset">Reset</button><span class="score" data-score></span></div>
+  </div>
+</section>
+
+<!-- 18 HOW DO PEOPLE FARM (compare) -->
+<section class="slide" data-sec="Mystery 3" data-blobs="a" data-steps>
+  <div class="tag teal">18:30&nbsp; MYSTERY 3</div>
+  <h2 class="title lo">How do people farm?</h2>
+  <div class="card" style="left:120px;top:166px;width:640px;height:520px;padding:14px"><img class="fitimg" src="img/map-d.webp" alt="Map D: farming areas"></div>
+  <div class="card" style="left:840px;top:166px;width:640px;height:520px;padding:14px"><img class="fitimg" src="img/map-b.webp" alt="Map B: annual rainfall"></div>
+  <div class="card" style="left:200px;top:712px;width:1200px;height:150px;padding:18px 34px;font-size:33px;line-height:1.35">
+    <div class="step">•&nbsp; Where there is more water, growing crops is often easier.</div>
+    <div class="step">•&nbsp; In very dry areas, people may rear animals.</div>
+  </div>
+</section>
+
+<!-- 19 MEET THE NOMADS -->
+<section class="slide" data-sec="Mystery 3" data-blobs="b" data-steps>
+  <div class="tag teal">19:45&nbsp; MYSTERY 3</div>
+  <h2 class="title lo">Meet the nomads</h2>
+  <div class="card" style="left:68px;top:172px;width:716px;height:430px;padding:14px"><img class="photo" src="img/photo-nomads.webp" alt="A herder walking with goats and sheep on dry land" style="left:14px;top:14px;width:688px;height:402px"></div>
+  <div class="card" style="left:832px;top:172px;width:712px;height:430px;padding:28px 34px;font-size:36px;line-height:1.35">In dry seasons, some people travel with their animals to find grass and leaves.<br>They take their homes with them.<br>They are <b class="rd">nomads</b> (dân du mục).</div>
+  <div style="position:absolute;left:68px;top:630px;display:flex;align-items:center;gap:10px">
+    <div class="dark step" style="position:static;width:220px;height:66px;font-size:27px">move</div><span class="step" style="color:#fff;font-size:34px">→</span>
+    <div class="dark step" style="position:static;width:220px;height:66px;font-size:27px">find grass</div><span class="step" style="color:#fff;font-size:34px">→</span>
+    <div class="dark step" style="position:static;width:220px;height:66px;font-size:27px">move again</div>
+  </div>
+  <img class="sticker" src="img/ic-camel.webp" alt="" style="left:96px;top:716px;width:100px;filter:none">
+  <img class="sticker" src="img/ic-goat.webp" alt="" style="left:206px;top:722px;width:96px;filter:none">
+  <div class="card" style="left:826px;top:626px;width:718px;height:190px;padding:20px 28px;font-size:31px;line-height:1.4">
+    <div class="b">Do nomads always stay in one place? <button class="ask qm" data-a="<span class='answer'>No.</span>" style="font-size:24px">?</button></div>
+    <div class="b" style="margin-top:12px">Why do they move? <button class="ask qm" data-a="<span class='answer'>To find food for their animals.</span>" style="font-size:24px">?</button></div>
+  </div>
+</section>
+
+<!-- 20 THE BIG IDEA -->
+<section class="slide" data-sec="Mystery 3" data-blobs="a" data-steps>
+  <div class="tag teal">20:45&nbsp; MYSTERY 3</div>
+  <h2 class="title lo">The big idea</h2>
+  <img class="photo" src="img/photo-farmer.webp" alt="A farmer with a bunch of bananas" style="left:75px;top:184px;width:458px;height:254px;border-radius:6px;z-index:2">
+  <img class="sticker" src="img/book.webp" alt="" style="left:606px;top:186px;width:180px">
+  <img class="sticker" src="img/backpack.webp" alt="" style="left:846px;top:184px;width:140px">
+  <img class="photo" src="img/photo-nomads.webp" alt="Nomads with their animals" style="left:1067px;top:184px;width:458px;height:254px;border-radius:6px;z-index:2">
+  <div class="card" style="left:240px;top:470px;width:1120px;height:198px;display:flex;align-items:center;justify-content:center;font-size:56px">Climate affects&nbsp;<button class="ask blank" data-a="farming" style="min-width:260px">________</button>.</div>
+  <div class="dark step" style="left:440px;top:700px;width:720px;height:76px;background:var(--orange);color:var(--ink);font-size:36px">Climate is not just hot or cold.</div>
+  <div class="step" style="position:absolute;left:0;right:0;top:796px;text-align:center;color:#fff;font-weight:800;font-size:32px">It affects how people live and work.</div>
+</section>
+
+<!-- 21 FROM ETHIOPIA TO VIETNAM -->
+<section class="slide" data-sec="Coffee" data-blobs="b" data-steps>
+  <div class="tag brown">23:30&nbsp; COFFEE</div>
+  <h2 class="title lo">From Ethiopia to Vietnam</h2>
+  <div class="card" style="left:32px;top:172px;width:574px;height:580px;padding:12px"><img class="fitimg" src="img/map-d.webp" alt="Map D: orange-pink areas show coffee farming"></div>
+  <div class="card step" style="left:630px;top:172px;width:444px;height:420px;padding:22px 26px;font-size:30px;line-height:1.35">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><img src="img/ic-pin.webp" alt="" style="width:52px"><span class="rd" style="font-size:32px">ETHIOPIA</span></div>
+    Look at the <b class="rd">orange-pink</b> areas on Map D.<br>Coffee is one of Ethiopia's <b class="rd">top exports</b>.</div>
+  <div class="card step" style="left:1098px;top:172px;width:470px;height:420px;padding:22px 26px;font-size:30px;line-height:1.35">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><img src="img/ic-pin.webp" alt="" style="width:52px"><span class="tl" style="font-size:32px">VIETNAM</span></div>
+    One of the world's <b class="tl">leading</b> coffee producers and exporters.<br>A lot grows in the <b class="tl">Central Highlands</b> (Tây Nguyên).</div>
+  <div class="card step" style="left:630px;top:614px;width:938px;height:118px;background:var(--cream);display:flex;align-items:center;gap:20px;padding:0 28px">
+    <img src="img/ic-mountain.webp" alt="" style="width:76px"><span class="b" style="font-size:34px;line-height:1.2">Both have <span class="tl">highland</span> areas where farmers grow coffee.</span></div>
+  <img class="sticker" src="img/coffee-cup.webp" alt="" style="left:1480px;top:750px;width:90px">
+</section>
+
+<!-- 22 COFFEE T/F -->
+<section class="slide" data-sec="Coffee" data-blobs="a">
+  <div class="tag brown">24:45&nbsp; COFFEE</div>
+  <div class="card" style="left:66px;top:150px;width:578px;height:420px;padding:14px"><img class="photo" src="img/photo-coffee.webp" alt="Farmers sorting coffee beans on drying tables" style="left:14px;top:14px;width:550px;height:392px"></div>
+  <div class="card choose" data-ok="F" style="left:688px;top:150px;width:846px;height:196px;display:flex;align-items:center;gap:22px;padding:0 26px">
+    <span class="num br">1</span><span class="b" style="font-size:38px;line-height:1.2;flex:1">Coffee grows best in a very hot, dry climate.</span>
+    <div style="display:flex;gap:6px"><button class="opt tfb" data-v="T" aria-label="True"><img src="img/ic-check.webp" alt=""></button><button class="opt tfb" data-v="F" aria-label="False"><img src="img/ic-cross.webp" alt=""></button></div>
+  </div>
+  <div class="card choose" data-ok="T" style="left:688px;top:374px;width:846px;height:196px;display:flex;align-items:center;gap:22px;padding:0 26px">
+    <span class="num br">2</span><span class="b" style="font-size:38px;line-height:1.2;flex:1">Coffee trees need warmth, but also quite a lot of rain.</span>
+    <div style="display:flex;gap:6px"><button class="opt tfb" data-v="T" aria-label="True"><img src="img/ic-check.webp" alt=""></button><button class="opt tfb" data-v="F" aria-label="False"><img src="img/ic-cross.webp" alt=""></button></div>
+  </div>
+  <div class="card" style="left:66px;top:612px;width:1468px;height:196px;padding:36px 36px;font-size:40px;line-height:1.45">
+    <div class="b">In Ethiopia, farmers grow <button class="ask blank" data-a="coffee" style="min-width:240px">____________</button>.</div>
+    <div class="b">In Vietnam, farmers <span class="tl">also</span> grow <button class="ask blank" data-a="coffee" style="min-width:240px">____________</button>.</div>
+  </div>
+</section>
+
+<!-- 23 SOLVE THE MYSTERY -->
+<section class="slide" data-sec="Exit Ticket" data-blobs="b">
+  <div class="tag ink">26:00&nbsp; EXIT TICKET</div>
+  <h2 class="title lo">Solve the mystery!</h2>
+  <div class="card quizq choose" data-ok="A" style="left:68px;top:172px;width:716px;height:304px">
+    <div class="qh"><span class="num">1</span><span>Why is the Horn of Africa generally hot?</span></div>
+    <button class="opt qo" data-v="A"><i>A</i>It is in the tropics.<span class="mark y">✓</span></button>
+    <button class="opt qo" data-v="B"><i>B</i>It has many mountains.<span class="mark n">✗</span></button>
+    <button class="opt qo" data-v="C"><i>C</i>It gets rain every day.<span class="mark n">✗</span></button>
+  </div>
+  <div class="card quizq choose" data-ok="B" style="left:816px;top:172px;width:716px;height:304px">
+    <div class="qh"><span class="num">2</span><span>Why are the Ethiopian Highlands cooler?</span></div>
+    <button class="opt qo" data-v="A"><i>A</i>They are near the sea.<span class="mark n">✗</span></button>
+    <button class="opt qo" data-v="B"><i>B</i>They are higher.<span class="mark y">✓</span></button>
+    <button class="opt qo" data-v="C"><i>C</i>They have no sunlight.<span class="mark n">✗</span></button>
+  </div>
+  <div class="card quizq choose" data-ok="C" style="left:68px;top:496px;width:716px;height:304px">
+    <div class="qh"><span class="num">3</span><span>Which statement about rainfall is correct?</span></div>
+    <button class="opt qo" data-v="A"><i>A</i>It rains equally everywhere.<span class="mark n">✗</span></button>
+    <button class="opt qo" data-v="B"><i>B</i>There are no dry seasons.<span class="mark n">✗</span></button>
+    <button class="opt qo" data-v="C"><i>C</i>Some places get very little rain.<span class="mark y">✓</span></button>
+  </div>
+  <div class="card quizq choose" data-ok="A" style="left:816px;top:496px;width:716px;height:304px">
+    <div class="qh"><span class="num">4</span><span>What do many farmers do in very dry areas?</span></div>
+    <button class="opt qo" data-v="A"><i>A</i>Rear animals.<span class="mark y">✓</span></button>
+    <button class="opt qo" data-v="B"><i>B</i>Grow rice everywhere.<span class="mark n">✗</span></button>
+    <button class="opt qo" data-v="C"><i>C</i>Stop all farming.<span class="mark n">✗</span></button>
+  </div>
+  <div class="ctl" style="left:1080px;top:822px"><button class="cbtn light" data-act="showall">Show answers</button><button class="cbtn light" data-act="resetchoices">Reset</button></div>
+</section>
+
+<!-- 24 TAKEAWAY -->
+<section class="slide" data-sec="Exit Ticket" data-blobs="a">
+  <div class="tag ink">27:30&nbsp; EXIT TICKET</div>
+  <h2 class="title lo">One-sentence takeaway</h2>
+  <div class="card" style="left:120px;top:184px;width:1360px;height:262px;display:flex;gap:30px;padding:44px 40px">
+    <img src="img/ic-ticket.webp" alt="" style="width:100px;height:100px">
+    <div class="b" style="font-size:44px;line-height:1.5">Climate affects people's lives because<br><span id="s24b" style="display:inline-block;min-width:900px;border-bottom:4px solid var(--ink);color:var(--teal)">&nbsp;</span>.</div>
+  </div>
+  <div class="b" style="position:absolute;left:124px;top:490px;color:#fff;font-size:30px">Need help? Use one of these:</div>
+  <button class="helper card" data-to="#s24b" style="left:120px;top:548px;width:436px;height:120px">some places are hot and some are cooler.</button>
+  <button class="helper card" data-to="#s24b" style="left:582px;top:548px;width:436px;height:120px">some places get more rain than others.</button>
+  <button class="helper card" data-to="#s24b" style="left:1044px;top:548px;width:436px;height:120px">rainfall affects farming.</button>
+  <img class="sticker" src="img/pen.webp" alt="" style="left:1350px;top:700px;width:175px">
+</section>
+
+<!-- 25 CASE CLOSED -->
+<section class="slide" data-sec="Case Closed" data-blobs="b" data-steps>
+  <img class="sticker" src="img/bubble.webp" alt="" style="left:130px;top:70px;width:340px">
+  <div style="position:absolute;left:80px;top:440px;color:#fff;font-family:'Paytone One',Inter,sans-serif;font-size:100px;line-height:1.05">CASE<br>CLOSED!</div>
+  <div class="card step" style="left:704px;top:92px;width:816px;height:138px;display:flex;align-items:center;gap:22px;padding:0 26px"><img src="img/ic-thermo-red.webp" alt="" style="width:74px"><span style="font-size:30px;line-height:1.3">The Horn of Africa is generally <b class="tl">hot</b> because it is in the <b class="tl">tropics</b>.</span></div>
+  <div class="card step" style="left:704px;top:250px;width:816px;height:138px;display:flex;align-items:center;gap:22px;padding:0 26px"><img src="img/ic-thermo-blue.webp" alt="" style="width:74px"><span style="font-size:30px;line-height:1.3">The Ethiopian Highlands are <b class="tl">cooler</b> because they are <b class="tl">higher</b>.</span></div>
+  <div class="card step" style="left:704px;top:408px;width:816px;height:138px;display:flex;align-items:center;gap:22px;padding:0 26px"><img src="img/ic-rain.webp" alt="" style="width:74px"><span style="font-size:30px;line-height:1.3">Rainfall is different, so people <b class="tl">grow crops</b> or <b class="tl">rear animals</b>.</span></div>
+  <div class="card step" style="left:704px;top:566px;width:816px;height:138px;display:flex;align-items:center;gap:22px;padding:0 26px"><img src="img/ic-beans.webp" alt="" style="width:74px"><span style="font-size:30px;line-height:1.3">Ethiopia and Vietnam <b class="tl">both</b> grow coffee.</span></div>
+  <div class="dark step" style="left:704px;top:732px;width:816px;height:82px;font-size:34px">Great work, Climate Detectives!</div>
+</section>
+
+</div>
+<aside class="notes" id="notes" hidden><button class="x" id="notesX">✕</button><h3 id="notesH">Notes</h3><pre id="notesT"></pre></aside>
+</div>
+<nav class="bar" id="bar">
+  <div class="prog" id="prog"></div>
+  <button id="prev" aria-label="Previous slide">◀</button>
+  <span class="count" id="count">1 / 25</span>
+  <button id="next" aria-label="Next slide">▶</button>
+  <span class="sec" id="sec"></span>
+  <span class="stepinfo" id="stepinfo" hidden></span>
+  <button id="showall" hidden>Show all</button>
+  <span class="sp"></span>
+  <span class="pace" id="pace" hidden></span>
+  <span class="timer" id="timer" title="Presentation timer (30 minutes)">30:00</span>
+  <button id="tplay" aria-label="Start or pause timer">▶</button>
+  <button id="treset" aria-label="Reset timer">↺</button>
+  <button id="notesBtn" title="Teacher notes (N)">Notes</button>
+  <button id="fsBtn" title="Full screen (F)">Full screen</button>
+</nav>
+</div>
+
+<style>
+/* slide-specific component styles */
+.pk{background:var(--mint);border-radius:12px;padding:2px 14px;font-weight:700;font-size:26px}
+.farm{display:flex;align-items:center;gap:16px;background:#fff;border-radius:16px;padding:4px 14px;text-align:left}
+.farm img{width:84px;height:84px}
+.farm span{font-weight:800;font-size:29px}
+.tfb{background:#fff;border-radius:50%;padding:2px;width:66px;height:66px;display:flex;align-items:center;justify-content:center}
+.tfb img{width:56px}
+.quizq{padding:20px 24px;display:flex;flex-direction:column;gap:8px}
+.qh{display:flex;align-items:center;gap:16px;font-weight:800;font-size:28px;line-height:1.2;margin-bottom:6px}
+.qo{display:flex;align-items:center;gap:14px;background:#fff;border-radius:14px;padding:5px 10px;font-size:26px;text-align:left}
+.qo i{font-style:normal;display:inline-flex;width:40px;height:40px;border-radius:50%;background:var(--teal);color:#fff;font-weight:800;font-size:21px;align-items:center;justify-content:center;flex:none}
+.helper{border:0;font-size:28px;line-height:1.3;padding:0 24px;border-radius:60px;transition:transform .15s}
+.helper:hover{transform:translateY(-3px)}
+.helper.used{outline:4px solid var(--orange)}
+</style>
+
+<script>
+/* ---------- data ---------- */
+const NOTES = [
+`TIMING: Bài dạy thử 30 phút = 29 phút nội dung + 1 phút đệm. Mỗi slide ghi mốc thời gian.
+Chuẩn bị: Worksheet B (Map B), Mission Card/Climate Passport + thẻ vai trò, thẻ True/False, thẻ A/B/C, Exit Ticket.
+Slide này chỉ chiếu khi HS vào lớp. Bấm sang slide 2 ngay khi bắt đầu.`,
+``,
+`TIMING: Bài dạy thử 30 phút = 29 phút nội dung + 1 phút đệm. Mỗi slide ghi mốc thời gian.
+Chuẩn bị: Worksheet B (Map B), Mission Card/Climate Passport + thẻ vai trò, thẻ True/False, thẻ A/B/C, Exit Ticket.
+Slide này chỉ chiếu khi HS vào lớp. Bấm sang slide 2 ngay khi bắt đầu.`,
+`0:00–1:00 | Spot the difference
+Teacher: "Good morning! Today you are not just students. You are climate detectives!"
+Teacher: "Picture A is green. Picture B is very dry. Same climate? Thumbs up for YES, thumbs down for NO!"
+Students: "No!"
+Teacher: "Both are in the Horn of Africa. How can one region have such different places?"
+▸ Ảnh A: trang trại ở cao nguyên Ethiopia (sách tr.124). Ảnh B: chăn dê ở vùng khô (sách tr.123). Không giải thích ngay.`,
+`1:00–2:30 | Introduce the mission + activate prior knowledge
+Chỉ Horn of Africa trên bản đồ (east of Africa). Đọc 3 mystery.
+Teacher: "What makes a place hot or cold? The sun? The mountains? The rain?" (HS đoán tự do, cho phép tiếng Việt – rút còn ~30 giây)
+Teacher: "Great ideas! Good detectives need evidence. Our evidence is three maps."
+▸ Không sửa hết câu trả lời của HS ở bước này; đáp án phải đến từ bản đồ.`,
+`2:30–3:15 | Weather vs climate
+Teacher: "Weather is what it is like today. Climate is what the weather is usually like in a place." (thời tiết / khí hậu)
+Teacher: "Rain today: weather or climate?" – S: "Weather!"
+Teacher: "Hanoi is hot in summer: weather or climate?" – S: "Climate!"`,
+`3:15–4:45 | Five key words (hình + cử chỉ)
+climate – chỉ lịch năm, vẽ vòng tròn | Equator – chỉ quả địa cầu, vẽ đường ngang | highlands – hai tay đưa cao | rainfall – ngón tay làm mưa rơi | dry – lau mồ hôi, lè lưỡi.
+Fast CCQs: "Are highlands high or low?" – High. "Does a dry place get a lot of rain?" – No. "Does rainfall mean how much rain a place gets?" – Yes.
+▸ Crops, rear animals dạy ở Farm Rescue Mission; nomads ở Mystery 3.`,
+`4:45–5:30 | Sentence frames
+Teacher model: "This place is dry because it gets very little rain." Pairs repeat 1 lần.
+▸ Frames này cần hiển thị suốt tiết (in ra dán bảng nếu có thể).`,
+`5:30–7:00 | Read the map + Why hot?
+Phóng to chú giải (30–35, 25–30, 20–25, 15–20, 10–15 °C) và đường Equator.
+Teacher: "What does Map A show: temperature or rainfall?" – S: "Temperature."
+Teacher: "Which colours are hotter?" – S: "Dark red." "Which are cooler?" – S: "Light orange."
+Teacher: "Look at the Equator. Is the Horn of Africa generally hot or cold?" – S: "Hot!"
+Teacher: "The Horn of Africa is generally hot because it is in the tropics."
+▸ Không bắt buộc dạy latitude/altitude.`,
+`7:00–8:30 | The Highland Surprise
+Teacher: "Look at V and W on Map A. Which place is cooler, V or W?" Pairs: "W is cooler than V."
+Teacher: "Why? Highlands are higher. The higher you go, the cooler it gets." (tay thấp → tay cao)
+Teacher model: "The Ethiopian Highlands are cooler because they are higher." S repeat.`,
+`8:30–9:30 | Mini-check (thumbs up = True / arms crossed = False) + Vietnam link
+1 → TRUE.  2 → FALSE (they are higher, not closer to the Equator).
+Teacher: "Sa Pa and Đà Lạt are high. Hanoi is low. Which is cooler?" – S: "Sa Pa / Đà Lạt!"
+Teacher: "Mystery One solved! Now, the rain."
+▸ Trễ giờ: bỏ mini-check, chỉ hỏi Vietnam link.`,
+`9:30–10:45 | Decode the map
+Teacher: "Map B shows how much rain a place gets in one year. Darker blue means more rain. The palest areas mean very little rain." (mm = millimetres)
+Chỉ từng màu trên bảng chú giải; HS đọc to khoảng mm.`,
+`10:45–12:15 | X or Y? + Worksheet B (cặp)
+Teacher: "Look at X and Y. Which place is very dry?" – S: "Y!" "How do you know?" – "Y is in the white area. It gets 0–200 mm."
+Teacher: "Does X get more or less rain than Y?" – S: "More!"
+▸ Xác nhận khoảng mm của X theo sắc xanh trên bản đồ sách; chỉ cần HS nói được "X gets a lot of rain".`,
+`12:15–13:30 | Seasons (30 giây) + why rainfall matters
+Teacher: "Does it rain every day? No! There are rainy seasons and dry seasons. Some areas have two of each in a year."
+Teacher: "You are a farmer. There is very little rain. What happens to your plants?" – S: "They die / dry out."
+Teacher: "When crops die, people may not have enough food. Famine means many people do not have enough food for a long time."
+Transition: "Temperature and rain: done! But what can people do in these places? Time for your team mission!"
+▸ Không dùng ảnh mộ trẻ em trong sách. Trễ giờ: bỏ dòng seasons.`,
+`13:30–14:15 | Mission briefing (nhóm 3–4, phát Mission Card/Climate Passport + thẻ vai trò). Tổng hoạt động nhóm = 5 phút (13:30–18:30).
+Teacher: "Welcome to the Farm Rescue Mission! You have two places: Zone X and Zone Y. Look at Map A and Map B. Is it hot or cool? Wet or dry?"
+Teacher: "Choose a suitable farming for each zone: grow crops, or rear animals. Explain WHY. Detectives need evidence!"
+(chỉ hình grow crops – wheat, grains; rear animals – goats, sheep, camels). Chưa cho xem Map D.
+Đáp án (GV): Zone X – cool, a lot of rain → grow crops. Zone Y – hot, very dry → rear animals.
+▸ Deck: bấm chọn hot/cool, wet/dry, crops/animals theo ý kiến lớp; bấm ✓ Check sau phần báo cáo.`,
+`14:15–16:45 | Team discussion (2'30")
+▸ Nếu HS bí, chỉ hỏi gợi ý: "What colour is X on Map B?" "Do crops need water?" "Which animals can live in dry areas?" Không đọc đáp án. GV đi quanh lớp, đếm xem mỗi vai đã nói chưa. (Nhóm 3: Writer kiêm Reporter.)
+16:45–18:00 | Team reports (1'15"): gọi 2 nhóm; các nhóm khác giơ tay nếu cùng đáp án.
+Expected: "Zone X is cool and gets a lot of rain. We choose growing crops." / "Zone Y is hot and very dry. We choose rearing animals."
+18:00–18:30 | "Great teamwork! But are you right? Let's check Map D!"
+▸ Đơn giản hóa cho trò chơi; thực tế còn phụ thuộc đất, nguồn nước. Nhóm xong sớm: "What happens if the rain does not come?"`,
+`18:30–19:45 | Check Map D
+Chú giải: green = main areas for growing crops; pale yellow = farmers mainly rear animals; orange-pink = coffee farming.
+Teacher: "What does green mean?" – "Growing crops." "And pale yellow?" – "Rearing animals."
+Teacher: "Compare Map B and Map D. Do wetter areas have more crop farming?" – S: "Yes, many do." "Do drier areas have more animal rearing?" – "Yes."
+Teacher: "Were your predictions right? Thumbs up!"`,
+`18:30–19:45 | Check Map D
+Chú giải: green = main areas for growing crops; pale yellow = farmers mainly rear animals; orange-pink = coffee farming.
+Teacher: "What does green mean?" – "Growing crops." "And pale yellow?" – "Rearing animals."
+Teacher: "Compare Map B and Map D. Do wetter areas have more crop farming?" – S: "Yes, many do." "Do drier areas have more animal rearing?" – "Yes."
+Teacher: "Were your predictions right? Thumbs up!"`,
+`19:45–20:45 | Meet the nomads (rút gọn còn ~1 phút)
+Teacher: "In dry seasons, some people travel with their animals to find grass and leaves. They take their homes with them. They are called nomads." (tay: move → find grass → move again)
+CCQ: "Do nomads always stay in one place?" – No. "Why do they move?" – "To find food for their animals."`,
+`20:45–22:00 | Complete the big idea
+Teacher viết lên bảng: "Climate affects ______."
+Students: "Climate affects farming." / "Rainfall affects where people grow crops." / "People adapt to the climate."
+Teacher: "Excellent! Climate is not just hot or cold. It affects how people live and work."`,
+`23:30–24:45 | Discover the connection
+Teacher: "Look at the orange-pink areas on Map D. What do farmers grow here?" (chiếu ảnh quả cà phê đỏ) – S: "Coffee!"
+Teacher: "Coffee is one of Ethiopia's top exports." (Sách ghi "top export"; số liệu 2025/26: vàng đã vượt cà phê, nên nói "one of".)
+Teacher: "Do we grow coffee in Vietnam?" – S: "Yes!" "Vietnam is one of the world's leading coffee producers and exporters. We grow a lot in the Central Highlands – Tây Nguyên!"
+Teacher: "Ethiopia and Vietnam: both have highland areas where farmers grow coffee."
+▸ Không nói khí hậu Ethiopia và Tây Nguyên giống hệt nhau; đây chỉ là liên hệ.`,
+`24:45–26:00 | True/False cards (✓/✗) + complete the sentences
+1 → FALSE.  2 → TRUE (bằng chứng: Map A, B, D – vùng cà phê nằm ở vùng cao, mưa khá nhiều).
+Complete: "In Ethiopia, farmers grow coffee." "In Vietnam, farmers also grow coffee."
+▸ Trễ giờ: bỏ T/F, giữ câu hoàn thành.`,
+`26:00–27:30 | Quick quiz – HS giơ thẻ A/B/C
+Đáp án: 1 A · 2 B · 3 C · 4 A.
+Ghi đáp án vào phần Quiz của Exit Ticket.`,
+`27:30–28:30 | One-sentence takeaway (viết vào Exit Ticket)
+Teacher: "Complete this sentence: Climate affects people's lives because ______."
+HS yếu: chọn 1 câu gợi ý. HS khá: tự viết câu đầy đủ với because.`,
+`28:30–29:00 | Wrap-up
+Teacher: "Today we learned: the Horn of Africa is generally hot because it is in the tropics. The Ethiopian Highlands are cooler because they are higher. Rainfall is different across the region, so people grow crops or rear animals. And Ethiopia and Vietnam both grow coffee. Great work, Climate Detectives!"
+BUFFER 29:00–30:00: dán Exit Ticket lên Climate Wall; gọi thêm 1–2 HS đọc câu; câu mở rộng "What happens if the rain does not come?"
+Nếu TRỄ, cắt theo thứ tự: seasons (slide 12) → nomads còn 30 giây → mini-check (slide 9) → T/F cà phê (slide 19).`
+];
+/* planned window for each slide in minutes [start, end]; null = no plan */
+const PLAN = [null,null,null,[0,1],[1,2.5],[2.5,3.25],[3.25,4.75],[4.75,5.5],[5.5,7],[7,8.5],[8.5,9.5],
+  [9.5,10.75],[10.75,12.25],[12.25,13.5],[13.5,14.25],[14.25,18.5],[18.5,19.75],[18.5,19.75],[19.75,20.75],
+  [20.75,22],[23.5,24.75],[24.75,26],[26,27.5],[27.5,28.5],[28.5,29]];
+const TOTAL = 30*60;
+
+/* ---------- stage & navigation ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const viewport = $('#viewport'), stage = $('#stage');
+const slides = $$('.slide', stage);
+let cur = 0, scale = 1;
+
+/** Scale the fixed 1600x900 stage to fit the viewport, centred. */
+function fit(){
+  const W = viewport.clientWidth, H = viewport.clientHeight;
+  scale = Math.min(W/1600, H/900);
+  stage.style.transform = `translate(${(W-1600*scale)/2}px,${(H-900*scale)/2}px) scale(${scale})`;
+}
+new ResizeObserver(fit).observe(viewport);
+
+/** Add the light-blue blobs behind each slide, alternating corners like the original deck. */
+function addBlobs(){
+  const sets = {
+    title: [['blob-a',-112,504,488],['blob-b',1312,528,480],['blob-c',1256,-128,432]],
+    a: [['blob-c',1290,-150,400],['blob-b',-140,600,360],['blob-a',1380,700,300]],
+    b: [['blob-a',-170,-200,420],['blob-c',1340,560,380],['blob-b',-120,760,250]]
+  };
+  slides.forEach(s => {
+    const set = sets[s.dataset.blobs]; if (!set) return;
+    set.forEach(([n,x,y,w]) => {
+      const im = document.createElement('img');
+      im.className = 'blob'; im.src = `img/${n}.webp`; im.alt = '';
+      im.style.cssText = `left:${x}px;top:${y}px;width:${w}px`;
+      s.prepend(im);
+    });
+  });
+}
+
+/** Return the step elements of a slide, in order. */
+function stepsOf(s){ return s.hasAttribute('data-steps') ? $$('.step', s) : []; }
+
+/** Show or hide every step of a slide. */
+function setSteps(s, on){ stepsOf(s).forEach(el => { el.classList.toggle('shown', on); if (el.classList.contains('ask')) setAsk(el, on); }); }
+
+/** Move to slide i; backwards arrival shows all steps (like PowerPoint). */
+function go(i, back=false){
+  i = Math.max(0, Math.min(slides.length-1, i));
+  slides[cur].classList.remove('on'); slides[cur].inert = true;
+  cur = i;
+  const s = slides[cur];
+  s.classList.add('on'); s.inert = false;
+  setSteps(s, back);
+  if (cur === 3 && !tRunning && tElapsed === 0) startTimer();
+  updateBar();
+}
+/** Next: reveal the next step if any, else go to the next slide. */
+function next(){
+  const hidden = stepsOf(slides[cur]).filter(e => !e.classList.contains('shown'));
+  if (hidden.length){ revealStep(hidden[0]); updateBar(); return; }
+  if (cur < slides.length-1) go(cur+1);
+}
+function prev(){ if (cur > 0) go(cur-1, true); }
+function revealStep(el){ el.classList.add('shown'); if (el.classList.contains('ask')) setAsk(el, true); }
+
+function updateBar(){
+  const s = slides[cur];
+  $('#count').textContent = `${cur+1} / ${slides.length}`;
+  $('#sec').textContent = s.dataset.sec || '';
+  $('#prog').style.width = `${(cur+1)/slides.length*100}%`;
+  const st = stepsOf(s), shown = st.filter(e => e.classList.contains('shown')).length;
+  const has = st.length && shown < st.length;
+  $('#stepinfo').hidden = !st.length; $('#stepinfo').textContent = `Step ${shown} / ${st.length}`;
+  $('#showall').hidden = !has;
+  $('#notesH').textContent = `Notes · slide ${cur+1}`;
+  $('#notesT').textContent = NOTES[cur] || '(Không có ghi chú)';
+  updatePace();
+}
+
+/* ---------- presentation timer ---------- */
+let tElapsed = 0, tRunning = false, tLast = 0, beeped5 = false, beeped0 = false;
+function fmt(sec){ const a = Math.abs(Math.round(sec)); return `${Math.floor(a/60)}:${String(a%60).padStart(2,'0')}`; }
+function startTimer(){ tRunning = true; tLast = performance.now(); $('#tplay').textContent = '❚❚'; }
+function pauseTimer(){ tRunning = false; $('#tplay').textContent = '▶'; }
+function tick(){
+  if (tRunning){
+    const now = performance.now(); tElapsed += (now - tLast)/1000; tLast = now;
+    const left = TOTAL - tElapsed;
+    if (!beeped5 && left <= 300){ beeped5 = true; beep(2); }
+    if (!beeped0 && left <= 0){ beeped0 = true; beep(3); }
+  }
+  const left = TOTAL - tElapsed, el = $('#timer');
+  el.textContent = left >= 0 ? fmt(left) : '+' + fmt(-left);
+  el.className = 'timer' + (left < 0 ? ' over' : left <= 300 ? ' warn' : '');
+  updatePace();
+}
+/** Compare elapsed time with the plan window of the current slide. */
+function updatePace(){
+  const p = PLAN[cur], el = $('#pace');
+  if (!p || tElapsed === 0){ el.hidden = true; return; }
+  el.hidden = false;
+  const m = tElapsed/60;
+  const plan = `Plan ${fmt(p[0]*60)}`;
+  if (m > p[1]){ el.className = 'pace late'; el.textContent = `${plan} · ${fmt((m-p[1])*60)} late`; }
+  else if (m < p[0] - 0.25){ el.className = 'pace early'; el.textContent = `${plan} · ${fmt((p[0]-m)*60)} early`; }
+  else { el.className = 'pace ok'; el.textContent = `${plan} · on time`; }
+}
+setInterval(tick, 250);
+
+/* ---------- sound ---------- */
+let actx = null;
+/** Short beeps through WebAudio (created on first user gesture). */
+function beep(n=1){
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    for (let k=0;k<n;k++){
+      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + k*0.32;
+      o.frequency.value = 880; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.3,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.25);
+      o.start(t); o.stop(t+0.27);
+    }
+  }catch(e){}
+}
+
+/* ---------- reveal chips / blanks ---------- */
+/** Show (or hide) the answer of a reveal element. */
+function setAsk(el, on){
+  if (el.dataset.q === undefined) el.dataset.q = el.innerHTML;
+  el.innerHTML = on ? el.dataset.a : el.dataset.q;
+  el.classList.toggle('shown', on);
+}
+function toggleAsk(el){
+  const on = !el.classList.contains('shown');
+  if (el.dataset.fill){ const t = $(el.dataset.fill); if (t) setAsk(t, on); el.classList.toggle('shown', on); return; }
+  setAsk(el, on);
+}
+
+/* ---------- choice groups ---------- */
+/** Handle a click on an option inside a .choose group. */
+function choose(group, btn){
+  const mode = group.dataset.mode;
+  if (mode === 'pick'){
+    $$('.opt', group).forEach(b => b.classList.remove('picked','ok','bad'));
+    btn.classList.add('picked'); return;
+  }
+  const ok = btn.dataset.v === group.dataset.ok;
+  btn.classList.remove('ok','bad'); void btn.offsetWidth;
+  btn.classList.add(ok ? 'ok' : 'bad');
+  if (ok) revealTargets(group);
+}
+function revealTargets(group){
+  const sel = group.dataset.reveal; if (!sel) return;
+  const scope = group.closest('.slide');
+  $$(sel, scope).forEach(t => { if (t.classList.contains('ask')) setAsk(t, true); else t.hidden = false; });
+}
+function resetGroup(group){
+  $$('.opt', group).forEach(b => b.classList.remove('ok','bad','picked'));
+  const sel = group.dataset.reveal; if (!sel) return;
+  $$(sel, group.closest('.slide')).forEach(t => { if (t.classList.contains('ask')) setAsk(t, false); else t.hidden = true; });
+}
+
+/* ---------- flip cards ---------- */
+function flip(card, to){
+  const target = to === undefined ? !card.classList.contains('turned') : to;
+  if (target === card.classList.contains('turned')) return;
+  card.classList.add('turning');
+  setTimeout(() => { card.classList.toggle('turned', target); card.classList.remove('turning'); }, 200);
+}
+
+/* ---------- countdowns ---------- */
+const cds = new Map();
+/** Start, pause or reset a countdown button. */
+function countdown(btn){
+  const total = +btn.dataset.countdown;
+  let st = cds.get(btn);
+  if (!st){ st = {left: total, run: false, id: 0}; cds.set(btn, st); }
+  if (btn.classList.contains('done')){ clearInterval(st.id); st.left = total; st.run = false; btn.className = btn.className.replace(/\b(done|run)\b/g,'').trim(); btn.textContent = fmt(total); return; }
+  if (st.run){ clearInterval(st.id); st.run = false; btn.classList.remove('run'); return; }
+  st.run = true; btn.classList.add('run'); beep(0);
+  let last = performance.now();
+  st.id = setInterval(() => {
+    const now = performance.now(); st.left -= (now-last)/1000; last = now;
+    if (st.left <= 0){ st.left = 0; clearInterval(st.id); st.run = false; btn.classList.remove('run'); btn.classList.add('done'); beep(3); }
+    btn.textContent = fmt(Math.ceil(st.left));
+  }, 200);
+}
+
+/* ---------- matching (click or drag) ---------- */
+let selChip = null, drag = null;
+function matchRoot(el){ return el.closest('[data-match]'); }
+function placeChip(chip, slot){
+  const root = matchRoot(slot), bank = $('.bank', root);
+  const old = slot.querySelector('.chipm');
+  if (old && old !== chip) bank.appendChild(old);
+  slot.appendChild(chip); clearMarks(root);
+}
+function clearMarks(root){ $$('.slot', root).forEach(s => s.classList.remove('ok','bad')); const sc = $('[data-score]', root); if (sc) sc.textContent=''; }
+function mcheck(root){
+  let right = 0; const slots = $$('.slot', root);
+  slots.forEach(s => { const c = s.querySelector('.chipm'); const ok = c && c.dataset.v === s.dataset.a; s.classList.toggle('ok', !!ok); s.classList.toggle('bad', !!c && !ok); if (ok) right++; });
+  $('[data-score]', root).textContent = `${right} / ${slots.length} right`;
+  if (right === slots.length) beep(1);
+}
+function mshow(root){ $$('.slot', root).forEach(s => { const c = $(`.chipm[data-v="${s.dataset.a}"]`, root); if (c) placeChip(c, s); }); mcheck(root); }
+function mreset(root){ const bank = $('.bank', root); $$('.slot .chipm', root).forEach(c => bank.appendChild(c)); clearMarks(root); }
+
+stage.addEventListener('pointerdown', e => {
+  const chip = e.target.closest('.chipm'); if (!chip) return;
+  const r = stage.getBoundingClientRect();
+  drag = {chip, x0: e.clientX, y0: e.clientY, moved: false, ghost: null, r};
+});
+window.addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (!drag.moved && Math.hypot(e.clientX-drag.x0, e.clientY-drag.y0) < 8) return;
+  if (!drag.moved){
+    drag.moved = true;
+    drag.ghost = drag.chip.cloneNode(true); drag.ghost.classList.add('ghost'); stage.appendChild(drag.ghost);
+    drag.chip.style.opacity = .35;
+  }
+  drag.ghost.style.left = (e.clientX - drag.r.left)/scale + 'px';
+  drag.ghost.style.top = (e.clientY - drag.r.top)/scale + 'px';
+  $$('.slot.hover').forEach(s => s.classList.remove('hover'));
+  const over = document.elementFromPoint(e.clientX, e.clientY); const sl = over && over.closest('.slot'); if (sl) sl.classList.add('hover');
+});
+window.addEventListener('pointerup', e => {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (!d.moved) return;
+  d.ghost.remove(); d.chip.style.opacity = '';
+  $$('.slot.hover').forEach(s => s.classList.remove('hover'));
+  const over = document.elementFromPoint(e.clientX, e.clientY);
+  const sl = over && over.closest('.slot');
+  if (sl && matchRoot(sl) === matchRoot(d.chip)) placeChip(d.chip, sl);
+  d.chip.dataset.justDragged = '1'; setTimeout(() => delete d.chip.dataset.justDragged, 60);
+});
+
+/* ---------- one click handler for the whole stage ---------- */
+stage.addEventListener('click', e => {
+  const t = e.target;
+  const chip = t.closest('.chipm');
+  if (chip){
+    if (chip.dataset.justDragged){ delete chip.dataset.justDragged; return; }
+    if (chip.parentElement.classList.contains('slot')){ $('.bank', matchRoot(chip)).appendChild(chip); clearMarks(matchRoot(chip)); return; }
+    $$('.chipm.sel').forEach(c => c.classList.remove('sel'));
+    selChip = chip; chip.classList.add('sel'); return;
+  }
+  const slot = t.closest('.slot');
+  if (slot && selChip){ selChip.classList.remove('sel'); placeChip(selChip, slot); selChip = null; return; }
+
+  const act = t.closest('[data-act]');
+  if (act){
+    const s = act.closest('.slide'), a = act.dataset.act, root = matchRoot(act);
+    if (a === 'flipall'){ const cards = $$('.flip', s); const to = !cards.every(c => c.classList.contains('turned')); cards.forEach(c => flip(c, to)); }
+    if (a === 'mcheck') mcheck(root);
+    if (a === 'mshow') mshow(root);
+    if (a === 'mreset') mreset(root);
+    if (a === 'showall') $$('.choose', s).forEach(g => { resetGroup(g); const b = $(`.opt[data-v="${g.dataset.ok}"]`, g); b.classList.add('ok'); revealTargets(g); });
+    if (a === 'resetchoices') $$('.choose', s).forEach(resetGroup);
+    if (a === 'checkpicks') $$('.choose[data-mode="pick"]', s).forEach(g => { const p = $('.opt.picked', g); $$('.opt', g).forEach(b => b.classList.remove('ok','bad')); if (p){ p.classList.add(p.dataset.v === g.dataset.ok ? 'ok' : 'bad'); } $$('.opt', g).forEach(b => { if (b.dataset.v === g.dataset.ok && !b.classList.contains('ok')) b.classList.add('picked'); }); });
+    if (a === 'resetpicks') $$('.choose[data-mode="pick"]', s).forEach(resetGroup);
+    return;
+  }
+  const cd = t.closest('[data-countdown]'); if (cd){ countdown(cd); return; }
+  const fl = t.closest('.flip'); if (fl){ flip(fl); return; }
+  const opt = t.closest('.opt'); if (opt){ choose(opt.closest('.choose'), opt); return; }
+  const ask = t.closest('.ask'); if (ask){ toggleAsk(ask); updateBar(); return; }
+  const help = t.closest('.helper');
+  if (help){ const to = $(help.dataset.to); $$('.helper', help.closest('.slide')).forEach(h => h.classList.remove('used')); if (to.textContent.trim() === help.textContent.trim()){ to.innerHTML = '&nbsp;'; } else { to.textContent = help.textContent; help.classList.add('used'); } return; }
+});
+
+/* ---------- bar & keys ---------- */
+$('#prev').onclick = prev; $('#next').onclick = next;
+$('#showall').onclick = () => { stepsOf(slides[cur]).forEach(revealStep); updateBar(); };
+$('#tplay').onclick = () => { tRunning ? pauseTimer() : startTimer(); };
+$('#treset').onclick = () => { pauseTimer(); tElapsed = 0; beeped5 = beeped0 = false; tick(); };
+function toggleNotes(){ $('#notes').hidden = !$('#notes').hidden; }
+$('#notesBtn').onclick = toggleNotes; $('#notesX').onclick = toggleNotes;
+function toggleFS(){
+  try{ if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); }catch(e){}
+}
+$('#fsBtn').onclick = toggleFS;
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key;
+  if (k === 'ArrowRight' || k === 'PageDown' || k === ' '){ e.preventDefault(); next(); }
+  else if (k === 'ArrowLeft' || k === 'PageUp'){ e.preventDefault(); prev(); }
+  else if (k === 'Home'){ go(0); }
+  else if (k === 'End'){ go(slides.length-1, true); }
+  else if (k === 'f' || k === 'F'){ toggleFS(); }
+  else if (k === 'n' || k === 'N'){ toggleNotes(); }
+  else if (k === 'Escape'){ $('#notes').hidden = true; }
+});
+/* keep focus off buttons so Space always means "next" */
+document.addEventListener('click', e => { const b = e.target.closest('button'); if (b) b.blur(); });
+
+/* ---------- start ---------- */
+addBlobs();
+slides.forEach((s,i) => { s.inert = i !== 0; });
+slides[0].classList.add('on');
+fit(); updateBar(); tick();
+</script>
+</body>
+</html>
